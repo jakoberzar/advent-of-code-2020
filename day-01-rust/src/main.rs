@@ -8,7 +8,7 @@ fn main() {
 fn star1(input: &str) {
     let mut numbers = parse_text(input);
     numbers.sort();
-    let (low, high) = find_two_numbers(&mut numbers, None).expect("No solution found!");
+    let (low, high) = find_two_numbers(&numbers, 2020).expect("No solution found!");
     println!(
         "Star 1: Resulting numbers are {} and {}, multiplied to {}",
         low,
@@ -20,7 +20,7 @@ fn star1(input: &str) {
 fn star2(input: &str) {
     let mut numbers = parse_text(input);
     numbers.sort();
-    let (first, second, third) = find_three_numbers(&mut numbers).expect("No solution found!");
+    let (first, second, third) = find_three_numbers(&numbers, 2020).expect("No solution found!");
     println!(
         "Star 2: Resulting numbers are {}, {} and {}, multiplied to {}",
         first,
@@ -43,30 +43,27 @@ fn parse_text(input: &str) -> Vec<i32> {
 }
 
 // Assumes sorted numbers vector
-// TODO: Maybe solution with receiving an iterator as a parameter would fit better?
-fn find_two_numbers(numbers: &[i32], third_number: Option<i32>) -> Option<(&i32, &i32)> {
+fn find_two_numbers(numbers: &[i32], wanted_sum: i32) -> Option<(&i32, &i32)> {
     // Only available in nightly...
     // if !numbers.is_sorted() {
     //     panic!("Numbers should be sorted before passed!");
     // }
 
-    let mut low_iter = numbers
-        .iter()
-        .filter(|&x| third_number.is_none() || *x != third_number.unwrap());
-    let mut high_iter = low_iter.clone().rev();
+    let mut low_iter = numbers.iter();
+    let mut high_iter = numbers.iter().rev();
     let mut low = low_iter.next().expect("No numbers in input!");
     let mut high = high_iter.next().expect("No numbers in input!");
 
     while low <= high {
-        let sum = low + high + third_number.unwrap_or(0);
-        if sum == 2020 {
+        let sum = low + high;
+        if sum == wanted_sum {
             return Some((low, high));
-        } else if sum < 2020 {
+        } else if sum < wanted_sum {
             match low_iter.next() {
                 Some(x) => low = x,
                 _ => return None,
             }
-        } else if sum > 2020 {
+        } else if sum > wanted_sum {
             match high_iter.next() {
                 Some(x) => high = x,
                 _ => return None,
@@ -77,9 +74,11 @@ fn find_two_numbers(numbers: &[i32], third_number: Option<i32>) -> Option<(&i32,
     None
 }
 
-fn find_three_numbers(numbers: &[i32]) -> Option<(&i32, &i32, &i32)> {
-    for third in numbers.iter() {
-        if let Some((first, second)) = find_two_numbers(numbers, Some(*third)) {
+fn find_three_numbers(numbers: &[i32], wanted_sum: i32) -> Option<(&i32, &i32, &i32)> {
+    for (idx, third) in numbers.iter().enumerate() {
+        if let Some((first, second)) =
+            find_two_numbers(&numbers[idx + 1..numbers.len()], wanted_sum - third)
+        {
             return Some((first, second, third));
         }
     }
