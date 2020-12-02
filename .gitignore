@@ -1,3 +1,2 @@
 # Rust target folder
-*-rust/target
-*/rust/target
+target
