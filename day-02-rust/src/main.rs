@@ -47,11 +47,8 @@ impl PasswordReq {
     }
 
     fn correct_part2(&self) -> bool {
-        let position1 = self.num1;
-        let position2 = self.num2;
-
-        (self.password.chars().nth(position1 - 1).unwrap_or('\0') == self.letter)
-            ^ (self.password.chars().nth(position2 - 1).unwrap_or('\0') == self.letter)
+        (self.password.chars().nth(self.num1 - 1).unwrap_or('\0') == self.letter)
+            ^ (self.password.chars().nth(self.num2 - 1).unwrap_or('\0') == self.letter)
     }
 }
 
