@@ -1,9 +1,9 @@
 use parse_display::{Display, FromStr};
 
 #[allow(dead_code)]
-const SAMPLE_INPUT: &str = include_str!("./../sample_input.txt");
+const SIMPLE_INPUT: &str = include_str!("./../../inputs/simple/day-02.txt");
 #[allow(dead_code)]
-const INPUT: &str = include_str!("./../input.txt");
+const INPUT: &str = include_str!("./../../inputs/day-02.txt");
 
 fn main() {
     let input = parse_input(INPUT);

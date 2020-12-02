@@ -1,4 +1,4 @@
-const INPUT: &str = include_str!("./../input.txt");
+const INPUT: &str = include_str!("./../../inputs/day-01.txt");
 
 fn main() {
     star1(INPUT);
@@ -9,25 +9,24 @@ fn star1(input: &str) {
     let mut numbers = parse_text(input);
     numbers.sort();
     let (low, high) = find_two_numbers(&numbers, 2020).expect("No solution found!");
+    let result = low * high;
     println!(
         "Star 1: Resulting numbers are {} and {}, multiplied to {}",
-        low,
-        high,
-        low * high
+        low, high, result
     );
+    assert_eq!(result, 988771);
 }
 
 fn star2(input: &str) {
     let mut numbers = parse_text(input);
     numbers.sort();
     let (first, second, third) = find_three_numbers(&numbers, 2020).expect("No solution found!");
+    let result = first * second * third;
     println!(
         "Star 2: Resulting numbers are {}, {} and {}, multiplied to {}",
-        first,
-        second,
-        third,
-        first * second * third
+        first, second, third, result
     );
+    assert_eq!(result, 171933104);
 }
 
 fn parse_text(input: &str) -> Vec<i32> {
