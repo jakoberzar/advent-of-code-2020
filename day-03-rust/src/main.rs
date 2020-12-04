@@ -21,11 +21,11 @@ fn star1(map: &Map) {
 }
 
 fn star2(map: &Map) {
-    let slopes = vec![(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
+    let slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
     let trees = slopes
         .iter()
         .map(|(right, down)| encountered_trees(map, *right, *down));
-    let multiplied = trees.fold(1, |acc, x| acc * x);
+    let multiplied: usize = trees.product();
 
     println!("Multiplied number of trees is {}.", multiplied);
     assert_eq!(9709761600, multiplied);
