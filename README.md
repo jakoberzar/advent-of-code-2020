@@ -7,8 +7,8 @@ My solutions for Advent of Code 2020. Language choice not yet final :)
 | 1   | ✔️   |     |     |        |        |
 | 2   | ✔️   |     |     |        |        |
 | 3   | ✔️   |     |     |        |        |
-| 4   |      |     |     |        |        |
-| 5   |      |     |     |        |        |
+| 4   | ✔️   |     |     |        |        |
+| 5   | ✔️   |     |     |        |        |
 | 6   |      |     |     |        |        |
 | 7   |      |     |     |        |        |
 | 8   |      |     |     |        |        |
