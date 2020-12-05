@@ -1,2 +1,8 @@
 # Rust target folder
 target
+# Fsharp
+.fake
+.ionide
+# Build files
+bin
+obj

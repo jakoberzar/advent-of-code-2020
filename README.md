@@ -2,13 +2,13 @@
 
 My solutions for Advent of Code 2020. Language choice not yet final :)
 
-| Day | Rust | C++ | Zig | Kotlin | Python |
+| Day | Rust | F#  | Zig | Kotlin | Python |
 | --- | ---- | --- | --- | ------ | ------ |
 | 1   | ✔️   |     |     |        |        |
 | 2   | ✔️   |     |     |        |        |
 | 3   | ✔️   |     |     |        |        |
 | 4   | ✔️   |     |     |        |        |
-| 5   | ✔️   |     |     |        |        |
+| 5   | ✔️   | ✔️  |     |        |        |
 | 6   |      |     |     |        |        |
 | 7   |      |     |     |        |        |
 | 8   |      |     |     |        |        |
@@ -33,7 +33,6 @@ My solutions for Advent of Code 2020. Language choice not yet final :)
 Other possible languages:
 
 - Ruby or Crystal too see what they look like?
-- F# or OCaml for some functional approaches to solutions?
 - Compile-time C++?
 - PHP to test out the PHP 8 JIT?
 - SIC/XE assembly for some quality time spent writing code?
