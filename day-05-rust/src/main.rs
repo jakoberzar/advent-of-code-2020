@@ -9,8 +9,9 @@ fn main() {
 }
 
 fn star1(ids: &Vec<u32>) {
-    let max = ids.iter().max().expect("No ids found!");
+    let &max = ids.iter().max().expect("No ids found!");
     println!("Max id is {}.", max);
+    assert_eq!(832, max);
 }
 
 fn star2(ids: &mut Vec<u32>) {
@@ -18,12 +19,12 @@ fn star2(ids: &mut Vec<u32>) {
     let my_seat = ids
         .iter()
         .zip(ids.iter().skip(1))
-        .filter(|(&left, &right)| left + 1 < right)
-        .map(|(&left, _)| left + 1)
-        .next()
+        .find(|(&left, &right)| left + 1 < right)
+        .map(|(left, _)| left + 1)
         .expect("No empty seat found!");
 
     println!("Id of empty seat is {}.", my_seat);
+    assert_eq!(517, my_seat);
 }
 
 fn make_input_binary(input: &str) -> String {
