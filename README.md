@@ -30,7 +30,43 @@ My solutions for Advent of Code 2020. Language choice not yet final :)
 | 24  |      |     |     |        |        |
 | 25  |      |     |     |        |        |
 
-Other possible languages:
+## Rust
+
+### Running code
+
+```bash
+cargo run --release -p day-01-rust
+```
+
+### Testing code
+
+```bash
+cargo test -p day-01-rust
+```
+
+### Create new day
+
+```bash
+cargo new -p day-25-rust
+```
+
+## F\#
+
+### Running code in F\#
+
+```bash
+cd day-05-fsharp
+dotnet run
+```
+
+### Create new day in F\#
+
+```bash
+cd day-25-fsharp
+dotnet new console --language F#
+```
+
+## Other possible languages
 
 - Ruby or Crystal too see what they look like?
 - Compile-time C++?
