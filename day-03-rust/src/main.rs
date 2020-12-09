@@ -7,28 +7,28 @@ const INPUT: &str = include_str!("./../../inputs/day-03.txt");
 
 fn main() {
     let map = parse_input(INPUT);
-    star1(&map);
-    star2(&map);
-}
 
-fn star1(map: &Map) {
-    let tree_count = encountered_trees(&map, 3, 1);
+    // Star 1
+    let tree_count = star1(&map);
     println!(
         "Encountered {} trees on slope right {}, down {}.",
         tree_count, 3, 1
     );
-    assert_eq!(278, tree_count);
+
+    // Star 2
+    let multiplied = star2(&map);
+    println!("Multiplied number of trees is {}.", multiplied);
 }
 
-fn star2(map: &Map) {
-    let slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
-    let trees = slopes
-        .iter()
-        .map(|(right, down)| encountered_trees(map, *right, *down));
-    let multiplied: usize = trees.product();
+fn star1(map: &Map) -> usize {
+    encountered_trees(&map, 3, 1)
+}
 
-    println!("Multiplied number of trees is {}.", multiplied);
-    assert_eq!(9709761600, multiplied);
+fn star2(map: &Map) -> usize {
+    [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
+        .iter()
+        .map(|(right, down)| encountered_trees(map, *right, *down))
+        .product()
 }
 
 fn parse_input(input: &str) -> Map {
@@ -123,5 +123,22 @@ impl fmt::Display for Map {
             write!(f, "\n").unwrap();
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        let map = parse_input(INPUT);
+        assert_eq!(star1(&map), 278);
+    }
+
+    #[test]
+    fn full_star2() {
+        let map = parse_input(INPUT);
+        assert_eq!(star2(&map), 9709761600);
     }
 }

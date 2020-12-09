@@ -1,32 +1,27 @@
 const INPUT: &str = include_str!("./../../inputs/day-01.txt");
 
 fn main() {
-    star1(INPUT);
-    star2(INPUT);
+    // Star 1
+    let result = star1(INPUT);
+    println!("The product of two numbers multiplied is {}", result);
+
+    // Star 2
+    let result = star2(INPUT);
+    println!("The product of two numbers multiplied is {}", result);
 }
 
-fn star1(input: &str) {
+fn star1(input: &str) -> i32 {
     let mut numbers = parse_text(input);
     numbers.sort();
     let (low, high) = find_two_numbers(&numbers, 2020).expect("No solution found!");
-    let result = low * high;
-    println!(
-        "Star 1: Resulting numbers are {} and {}, multiplied to {}",
-        low, high, result
-    );
-    assert_eq!(result, 988771);
+    low * high
 }
 
-fn star2(input: &str) {
+fn star2(input: &str) -> i32 {
     let mut numbers = parse_text(input);
     numbers.sort();
     let (first, second, third) = find_three_numbers(&numbers, 2020).expect("No solution found!");
-    let result = first * second * third;
-    println!(
-        "Star 2: Resulting numbers are {}, {} and {}, multiplied to {}",
-        first, second, third, result
-    );
-    assert_eq!(result, 171933104);
+    first * second * third
 }
 
 fn parse_text(input: &str) -> Vec<i32> {
@@ -43,11 +38,6 @@ fn parse_text(input: &str) -> Vec<i32> {
 
 // Assumes sorted numbers vector
 fn find_two_numbers(numbers: &[i32], wanted_sum: i32) -> Option<(&i32, &i32)> {
-    // Only available in nightly...
-    // if !numbers.is_sorted() {
-    //     panic!("Numbers should be sorted before passed!");
-    // }
-
     let mut low_iter = numbers.iter();
     let mut high_iter = numbers.iter().rev();
     let mut low = low_iter.next().expect("No numbers in input!");
@@ -82,4 +72,21 @@ fn find_three_numbers(numbers: &[i32], wanted_sum: i32) -> Option<(&i32, &i32, &
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        let result = star1(INPUT);
+        assert_eq!(result, 988771);
+    }
+
+    #[test]
+    fn full_star2() {
+        let result = star2(INPUT);
+        assert_eq!(result, 171933104);
+    }
 }

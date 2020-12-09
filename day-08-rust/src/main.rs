@@ -8,15 +8,20 @@ const SIMPLE_INPUT: &str = include_str!("./../../inputs/simple/day-08.txt");
 
 fn main() {
     let instrs = parse_input(INPUT);
-    star1(&instrs);
-    star2(&instrs);
+
+    // Star 1
+    let acc = star1(&instrs);
+    println!("Value of accumulator before second execution is {}", acc);
+
+    let acc = star2(&instrs);
+    println!("Value of accumulator after termination is {}", acc);
 }
 
 fn parse_input(input: &str) -> Vec<Instr> {
     input.trim().lines().map(Instr::from).collect()
 }
 
-fn star1(instrs: &Vec<Instr>) {
+fn star1(instrs: &Vec<Instr>) -> i32 {
     let mut instr_keeper = InstrKeeper::new(instrs);
     let mut regs = Regs::new();
     loop {
@@ -31,16 +36,12 @@ fn star1(instrs: &Vec<Instr>) {
         regs = instr_keeper.visit(&regs).execute_on(regs);
     }
 
-    println!(
-        "Value of accumulator before second execution is {}",
-        regs.acc
-    );
+    regs.acc
 }
 
-fn star2(instrs: &Vec<Instr>) {
+fn star2(instrs: &Vec<Instr>) -> i32 {
     let mut instr_keeper = InstrKeeper::new(instrs);
-    let value = find_fix(&mut instr_keeper, Regs::new(), false);
-    println!("Value of accumulator after termination is {:?}", value);
+    find_fix(&mut instr_keeper, Regs::new(), false).unwrap()
 }
 
 fn find_fix(instr_keeper: &mut InstrKeeper, regs: Regs, already_modified: bool) -> Option<i32> {
@@ -163,5 +164,24 @@ impl InstrKeeper<'_> {
 
     fn reset_visit(&mut self, regs: &Regs) {
         self.visited[regs.pc] = false;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        let instrs = parse_input(INPUT);
+        let acc = star1(&instrs);
+        assert_eq!(acc, 1528);
+    }
+
+    #[test]
+    fn full_star2() {
+        let instrs = parse_input(INPUT);
+        let acc = star2(&instrs);
+        assert_eq!(acc, 640);
     }
 }

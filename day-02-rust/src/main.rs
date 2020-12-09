@@ -7,26 +7,28 @@ const INPUT: &str = include_str!("./../../inputs/day-02.txt");
 
 fn main() {
     let input = parse_input(INPUT);
-    star1(&input);
-    star2(&input);
+
+    // Star 1
+    let correct_count = star1(&input);
+    println!("{} passwords are correct for star 1.", correct_count);
+
+    // Star 2
+    let correct_count = star2(&input);
+    println!("{} passwords are correct for star 2.", correct_count);
 }
 
-fn star1(input: &[PasswordReq]) {
-    let correct_count = input
+fn star1(input: &[PasswordReq]) -> usize {
+    input
         .iter()
         .filter(|&pass_unit| pass_unit.correct_part1())
-        .count();
-    println!("{} passwords are correct.", correct_count);
-    assert_eq!(correct_count, 569);
+        .count()
 }
 
-fn star2(input: &[PasswordReq]) {
-    let correct_count = input
+fn star2(input: &[PasswordReq]) -> usize {
+    input
         .iter()
         .filter(|&pass_unit| pass_unit.correct_part2())
-        .count();
-    println!("{} passwords are correct.", correct_count);
-    assert_eq!(correct_count, 346);
+        .count()
 }
 
 // Password policy combined with the actual password
@@ -61,4 +63,23 @@ fn parse_input(input: &str) -> Vec<PasswordReq> {
                 .expect(&format!("Error while parsing line {}", line))
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        let input = parse_input(INPUT);
+        let correct_count = star1(&input);
+        assert_eq!(correct_count, 569);
+    }
+
+    #[test]
+    fn full_star2() {
+        let input = parse_input(INPUT);
+        let correct_count = star2(&input);
+        assert_eq!(correct_count, 346);
+    }
 }

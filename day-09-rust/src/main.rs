@@ -10,17 +10,23 @@ fn main() {
     let numbers = parse_input(INPUT);
 
     // Star 1
-    let invalid = find_invalid_buffer(&numbers, AMOUNT);
+    let invalid = star1(&numbers, AMOUNT);
     println!("Invalid number is {}", invalid);
-    assert_eq!(556543474, *invalid);
 
     // Star 2
-    let (idx_low, idx_high) = find_zone(&numbers, *invalid);
+    let zone_sum = star2(&numbers, *invalid);
+    println!("Zone min and max sum is {}", zone_sum);
+}
+
+fn star1(numbers: &[u64], amount: usize) -> &u64 {
+    find_invalid_buffer(&numbers, amount)
+}
+
+fn star2(numbers: &[u64], invalid: u64) -> u64 {
+    let (idx_low, idx_high) = find_zone(&numbers, invalid);
     let range = numbers[idx_low..=idx_high].iter();
     let (min, max) = (range.clone().min().unwrap(), range.clone().max().unwrap());
-    let zone_sum = min + max;
-    println!("Zone min is {}, max is {}, sum is {}", min, max, zone_sum);
-    assert_eq!(76096372, zone_sum);
+    min + max
 }
 
 fn parse_input(input: &str) -> Vec<u64> {
@@ -127,5 +133,24 @@ impl SumBuffer<'_> {
             self.sums[offset + _col] = sum;
         }
         self.idx += 1;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        let numbers = parse_input(INPUT);
+        let invalid = star1(&numbers, AMOUNT);
+        assert_eq!(*invalid, 556543474);
+    }
+
+    #[test]
+    fn full_star2() {
+        let numbers = parse_input(INPUT);
+        let zone_sum = star2(&numbers, 556543474);
+        assert_eq!(zone_sum, 76096372);
     }
 }

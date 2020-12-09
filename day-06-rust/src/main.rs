@@ -6,12 +6,15 @@ const INPUT: &str = include_str!("./../../inputs/day-06.txt");
 const SIMPLE_INPUT: &str = include_str!("./../../inputs/simple/day-06.txt");
 
 fn main() {
-    star1(INPUT);
-    star2(INPUT);
+    let anyone_yes = star1(INPUT);
+    println!("Sum of answers where anyone answered yes is {}", anyone_yes);
+
+    let everyone_yes = star2(INPUT);
+    println!("Sum of answers everyone answered yes is {}", everyone_yes);
 }
 
-fn star1(input: &str) {
-    let sum: usize = input
+fn star1(input: &str) -> usize {
+    input
         .trim()
         .split("\n\n")
         .map(|group| {
@@ -21,14 +24,13 @@ fn star1(input: &str) {
                 .collect::<HashSet<char>>()
                 .len()
         })
-        .sum();
-
-    println!("Sum of answers where anyone answered yes is {}", sum);
+        .sum()
 }
 
-fn star2(input: &str) {
+fn star2(input: &str) -> usize {
     let alphabet: HashSet<char> = HashSet::from(('a'..='z').collect());
-    let sum: usize = input
+
+    input
         .trim()
         .split("\n\n")
         .map(|group| {
@@ -40,7 +42,22 @@ fn star2(input: &str) {
                 })
                 .len()
         })
-        .sum();
+        .sum()
+}
 
-    println!("Sum of answers everyone answered yes is {}", sum);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        let anyone_yes = star1(INPUT);
+        assert_eq!(anyone_yes, 6763);
+    }
+
+    #[test]
+    fn full_star2() {
+        let everyone_yes = star2(INPUT);
+        assert_eq!(everyone_yes, 3512);
+    }
 }

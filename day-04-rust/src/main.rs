@@ -4,12 +4,20 @@ const SIMPLE_INPUT: &str = include_str!("./../../inputs/simple/day-04.txt");
 const INPUT: &str = include_str!("./../../inputs/day-04.txt");
 
 fn main() {
-    star1(INPUT);
-    star2(INPUT);
+    // Star 1
+    let valid = star1(INPUT);
+    println!("{} entries have (almost) all the fields", valid);
+
+    // Star 2
+    let valid = star2(INPUT);
+    println!(
+        "{} entries have (almost) all the fields and all valid",
+        valid
+    );
 }
 
-fn star1(input: &str) {
-    let valid = input
+fn star1(input: &str) -> usize {
+    input
         .split("\n\n")
         .map(|passport| {
             passport
@@ -19,23 +27,14 @@ fn star1(input: &str) {
                 .count()
         })
         .filter(|x| *x == 7)
-        .count();
-
-    println!("{} entries have (almost) all the fields", valid);
-    assert_eq!(230, valid);
+        .count()
 }
 
-fn star2(input: &str) {
-    let valid = input
+fn star2(input: &str) -> usize {
+    input
         .split("\n\n")
         .filter(|&passport| validate_passport(passport))
-        .count();
-
-    println!(
-        "{} entries have (almost) all the fields and all valid",
-        valid
-    );
-    assert_eq!(156, valid);
+        .count()
 }
 
 fn validate_passport(passport: &str) -> bool {
@@ -93,5 +92,20 @@ fn validate_field(key: &str, value: &str) -> Result<bool, std::num::ParseIntErro
         "pid" => Ok(value.chars().filter(|x| x.is_ascii_digit()).count() == 9),
         "cid" => Ok(false),
         _ => Ok(false),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        assert_eq!(star1(INPUT), 230);
+    }
+
+    #[test]
+    fn full_star2() {
+        assert_eq!(star2(INPUT), 156);
     }
 }

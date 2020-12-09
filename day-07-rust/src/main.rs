@@ -14,11 +14,19 @@ const SIMPLE_INPUT: &str = include_str!("./../../inputs/simple/day-07.txt");
 
 fn main() {
     let rules = parse_input(INPUT);
-    star1(&rules);
-    star2(&rules);
+
+    // Star 1
+    let bag_count = star1(&rules);
+    println!(
+        "Found {} types of bags that can contain the gold bag.",
+        bag_count
+    );
+
+    let in_gold_bag = star2(&rules);
+    println!("There can be {} bags in the gold bag.", in_gold_bag);
 }
 
-fn star1(rules: &Vec<Rule>) {
+fn star1(rules: &Vec<Rule>) -> usize {
     let mut found: HashSet<&String> = HashSet::new();
     let mut searching: VecDeque<&String> = VecDeque::new();
 
@@ -38,22 +46,15 @@ fn star1(rules: &Vec<Rule>) {
             });
     }
 
-    println!(
-        "Found {} types of bags that can contain the gold bag.",
-        found.len()
-    );
-    assert_eq!(208, found.len());
+    found.len()
 }
 
-fn star2(rules: &Vec<Rule>) {
+fn star2(rules: &Vec<Rule>) -> u32 {
     let rule_map: HashMap<&String, &Rule> =
         HashMap::from_iter(rules.iter().map(|rule| &rule.bag).zip(rules.iter()));
 
     let gold_bag = find_gold_bag(rules);
-    let in_gold_bag = amount_containing_bags(&rule_map, gold_bag);
-
-    println!("There are {} bags in the gold bag.", in_gold_bag);
-    assert_eq!(1664, in_gold_bag);
+    amount_containing_bags(&rule_map, gold_bag)
 }
 
 struct Rule {
@@ -108,4 +109,23 @@ fn amount_containing_bags(rule_map: &HashMap<&String, &Rule>, container: &Rule) 
             amount + amount * amount_containing_bags(rule_map, rule_map.get(name).unwrap())
         })
         .sum()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn full_star1() {
+        let rules = parse_input(INPUT);
+        let bag_count = star1(&rules);
+        assert_eq!(bag_count, 208);
+    }
+
+    #[test]
+    fn full_star2() {
+        let rules = parse_input(INPUT);
+        let in_gold_bag = star2(&rules);
+        assert_eq!(in_gold_bag, 1664);
+    }
 }
