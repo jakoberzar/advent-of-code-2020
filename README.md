@@ -12,7 +12,7 @@ My solutions for Advent of Code 2020. Language choice not yet final :)
 | 6   | ✔️   |     |     |        |        |
 | 7   | ✔️   |     |     |        |        |
 | 8   | ✔️   |     |     |        |        |
-| 9   |      |     |     |        |        |
+| 9   | ✔️   |     |     |        |        |
 | 10  |      |     |     |        |        |
 | 11  |      |     |     |        |        |
 | 12  |      |     |     |        |        |
