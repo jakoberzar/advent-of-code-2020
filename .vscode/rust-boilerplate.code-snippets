@@ -1,0 +1,74 @@
+{
+  // Place your advent-of-code-2020 workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+  // description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+  // is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+  // used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+  // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
+  // Placeholders with the same ids are connected.
+  // Example:
+  // "Print to console": {
+  // 	"scope": "javascript,typescript",
+  // 	"prefix": "log",
+  // 	"body": [
+  // 		"console.log('$1');",
+  // 		"$2"
+  // 	],
+  // 	"description": "Log output to console"
+  // }
+  "Rust AoC Boilerplate": {
+    "scope": "rust",
+    "prefix": "boilerplate",
+    "body": [
+      "#[allow(dead_code)]",
+      "const INPUT: &str = include_str!(\"./../../inputs/day-$1.txt\");",
+      "#[allow(dead_code)]",
+      "const SIMPLE_INPUT: &str = include_str!(\"./../../inputs/simple/day-$1.txt\");",
+      "",
+      "fn main() {",
+      "    let input = parse_input(SIMPLE_INPUT);",
+      "}",
+      "",
+      "fn parse_input(input: &str) -> Vec<u32> {",
+      "    todo!();",
+      "}",
+      "",
+      "fn star1(numbers: &[u32]) -> usize {",
+      "    todo!();",
+      "}",
+      "",
+      "fn star2(numbers: &[u32]) -> usize {",
+      "    todo!();",
+      "}",
+      "",
+      "#[cfg(test)]",
+      "mod tests {",
+      "    use super::*;",
+      "",
+      "    #[test]",
+      "    fn simple_star1() {",
+      "        let numbers = parse_input(SIMPLE_INPUT);",
+      "        assert_eq!(star1(&numbers), 22 * 10);",
+      "    }",
+      "",
+      "    #[test]",
+      "    fn full_star1() {",
+      "        let input = parse_input(INPUT);",
+      "        assert_eq!(star1(&input), 3034);",
+      "    }",
+      "",
+      "    #[test]",
+      "    fn simple_star2() {",
+      "        let input = parse_input(SIMPLE_INPUT);",
+      "        assert_eq!(star2(&input), 19208);",
+      "    }",
+      "",
+      "    #[test]",
+      "    fn full_star2() {",
+      "        let input = parse_input(INPUT);",
+      "        assert_eq!(star2(&input), 259172170858496);",
+      "    }",
+      "}"
+    ],
+    "description": "Log output to console"
+  }
+}
