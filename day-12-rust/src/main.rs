@@ -1,4 +1,3 @@
-use std::convert::TryFrom;
 use std::convert::TryInto;
 
 #[allow(dead_code)]
@@ -46,56 +45,67 @@ fn star2(instructions: &[Instruction]) -> u32 {
 }
 
 #[derive(Copy, Clone, Debug)]
-enum Instruction {
-    North(u32),
-    South(u32),
-    East(u32),
-    West(u32),
-    Forward(u32),
-    Right(u32),
-    Left(u32),
-}
-
-impl Instruction {
-    fn new(line: &str) -> Instruction {
-        let amount: u32 = line[1..].parse().unwrap();
-        let letter = line.chars().next().unwrap();
-        match letter {
-            'N' => Instruction::North(amount),
-            'S' => Instruction::South(amount),
-            'E' => Instruction::East(amount),
-            'W' => Instruction::West(amount),
-            'F' => Instruction::Forward(amount),
-            'R' => Instruction::Right(amount),
-            'L' => Instruction::Left(amount),
-            _ => panic!("Invalid letter!"),
-        }
-    }
-}
-
-#[derive(Copy, Clone, Debug)]
-enum Direction {
+enum SkyDirection {
     North,
     East,
     South,
     West,
 }
 
-impl Direction {
-    fn rotated_by(&self, degrees: u32) -> Direction {
-        let mut direction = *self;
-        for _ in 0..(degrees / 90) {
-            direction = direction.rotated_right();
-        }
-        direction
-    }
-
-    fn rotated_right(&self) -> Direction {
+impl SkyDirection {
+    fn rotated_right(&self) -> SkyDirection {
         match self {
-            Direction::North => Direction::East,
-            Direction::East => Direction::South,
-            Direction::South => Direction::West,
-            Direction::West => Direction::North,
+            SkyDirection::North => SkyDirection::East,
+            SkyDirection::East => SkyDirection::South,
+            SkyDirection::South => SkyDirection::West,
+            SkyDirection::West => SkyDirection::North,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+enum MoveDirection {
+    Forward,
+    Left,
+    Right,
+}
+
+#[derive(Clone, Debug)]
+enum InstructionDirection {
+    Sky(SkyDirection),
+    Move(MoveDirection),
+}
+
+impl InstructionDirection {
+    fn new(letter: char) -> InstructionDirection {
+        use InstructionDirection::{Move, Sky};
+        match letter {
+            'N' => Sky(SkyDirection::North),
+            'E' => Sky(SkyDirection::East),
+            'S' => Sky(SkyDirection::South),
+            'W' => Sky(SkyDirection::West),
+            'F' => Move(MoveDirection::Forward),
+            'L' => Move(MoveDirection::Left),
+            'R' => Move(MoveDirection::Right),
+            _ => panic!("Invalid letter!"),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct Instruction {
+    direction: InstructionDirection,
+    amount: u32,
+}
+
+impl Instruction {
+    fn new(line: &str) -> Instruction {
+        let amount: u32 = line[1..].parse().unwrap();
+        let letter = line.chars().next().unwrap();
+
+        Instruction {
+            direction: InstructionDirection::new(letter),
+            amount,
         }
     }
 }
@@ -110,7 +120,7 @@ struct Waypoint {
 struct Position {
     x: i32,
     y: i32,
-    direction: Direction,
+    direction: SkyDirection,
     waypoint: Waypoint,
 }
 
@@ -119,32 +129,40 @@ impl Position {
         Position {
             x: 0,
             y: 0,
-            direction: Direction::East,
+            direction: SkyDirection::East,
             waypoint: Waypoint { x: 10, y: 1 },
         }
     }
 
     fn apply(&mut self, instruction: &Instruction) {
-        match instruction {
-            Instruction::North(amount) => self.y += i32::try_from(*amount).unwrap(),
-            Instruction::South(amount) => self.y -= i32::try_from(*amount).unwrap(),
-            Instruction::East(amount) => self.x += i32::try_from(*amount).unwrap(),
-            Instruction::West(amount) => self.x -= i32::try_from(*amount).unwrap(),
-            Instruction::Forward(amount) => self.forward(*amount),
-            Instruction::Right(amount) => self.rotate_right(*amount),
-            Instruction::Left(amount) => self.rotate_right(360 - *amount),
+        let amount: u32 = instruction.amount;
+        let amount_signed: i32 = amount.try_into().unwrap();
+
+        use InstructionDirection::{Move, Sky};
+        match instruction.direction {
+            Sky(SkyDirection::North) => self.y += amount_signed,
+            Sky(SkyDirection::South) => self.y -= amount_signed,
+            Sky(SkyDirection::East) => self.x += amount_signed,
+            Sky(SkyDirection::West) => self.x -= amount_signed,
+            Move(MoveDirection::Forward) => self.forward(amount),
+            Move(MoveDirection::Right) => self.rotate_right(amount),
+            Move(MoveDirection::Left) => self.rotate_right(360 - amount),
         }
     }
 
     fn apply_waypoint(&mut self, instruction: &Instruction) {
-        match instruction {
-            Instruction::North(amount) => self.waypoint.y += i32::try_from(*amount).unwrap(),
-            Instruction::South(amount) => self.waypoint.y -= i32::try_from(*amount).unwrap(),
-            Instruction::East(amount) => self.waypoint.x += i32::try_from(*amount).unwrap(),
-            Instruction::West(amount) => self.waypoint.x -= i32::try_from(*amount).unwrap(),
-            Instruction::Forward(amount) => self.forward_waypoint(*amount),
-            Instruction::Right(amount) => self.rotate_right(*amount),
-            Instruction::Left(amount) => self.rotate_right(360 - *amount),
+        let amount: u32 = instruction.amount;
+        let amount_signed: i32 = amount.try_into().unwrap();
+
+        use InstructionDirection::{Move, Sky};
+        match instruction.direction {
+            Sky(SkyDirection::North) => self.waypoint.y += amount_signed,
+            Sky(SkyDirection::South) => self.waypoint.y -= amount_signed,
+            Sky(SkyDirection::East) => self.waypoint.x += amount_signed,
+            Sky(SkyDirection::West) => self.waypoint.x -= amount_signed,
+            Move(MoveDirection::Forward) => self.forward_waypoint(amount),
+            Move(MoveDirection::Right) => self.rotate_right(amount),
+            Move(MoveDirection::Left) => self.rotate_right(360 - amount),
         }
     }
 
@@ -155,10 +173,10 @@ impl Position {
     fn forward(&mut self, amount: u32) {
         let amount: i32 = amount.try_into().unwrap();
         match self.direction {
-            Direction::East => self.x += amount,
-            Direction::West => self.x -= amount,
-            Direction::North => self.y += amount,
-            Direction::South => self.y -= amount,
+            SkyDirection::East => self.x += amount,
+            SkyDirection::West => self.x -= amount,
+            SkyDirection::North => self.y += amount,
+            SkyDirection::South => self.y -= amount,
         }
     }
 
