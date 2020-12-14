@@ -6,3 +6,5 @@ target
 # Build files
 bin
 obj
+# Perf
+perf.data*
