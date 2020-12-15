@@ -18,7 +18,7 @@ My solutions for Advent of Code 2020. Language choice not yet final :)
 | 12  | ✔️   |     |     |        |        |
 | 13  | ✔️   |     |     |        |        |
 | 14  | ✔️   |     |     |        |        |
-| 15  | ✔️   |     |     |        |        |
+| 15  | ✔️   | ✔️  |     |        |        |
 | 16  |      |     |     |        |        |
 | 17  |      |     |     |        |        |
 | 18  |      |     |     |        |        |
@@ -62,8 +62,10 @@ dotnet run
 ### Create new day in F\#
 
 ```bash
+mkdir day-25-fsharp
 cd day-25-fsharp
 dotnet new console --language F#
+# Also, don't forget about declaring namespace and module in the file!
 ```
 
 ## Other possible languages
