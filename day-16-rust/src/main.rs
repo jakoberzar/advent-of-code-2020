@@ -13,8 +13,8 @@ fn main() {
     println!("Sum of invalid values is {}", invalid_value_sum);
 
     // Star 2
-    let invalid_value_sum = star2(&rules, &mine, &nearby);
-    println!("Sum of invalid values is {}", invalid_value_sum);
+    let departure_product = star2(&rules, &mine, &nearby);
+    println!("Product of departure columns is {}", departure_product);
 }
 
 fn parse_input(input: &str) -> (Vec<Rule>, Ticket, Vec<Ticket>) {
@@ -52,20 +52,19 @@ fn star2(rules: &[Rule], mine: &Ticket, nearby: &[Ticket]) -> usize {
     let mut valid_tickets: Vec<Ticket> = get_valid_tickets(rules, nearby);
     valid_tickets.push(mine.clone());
 
-    let mut rule_rows: Vec<usize> = Vec::new(); // mapping of row -> rule
-    let mut rule_checker = RuleChecker::new(rules, &valid_tickets);
-    find_order(&mut rule_rows, &mut rule_checker);
+    let mut order_finder = RuleOrderFinder::new(rules, &valid_tickets);
+    order_finder.optimize();
 
-    println!("Found order: {:?}", rule_rows);
+    if !order_finder.order_established() {
+        panic!("Multiple variants possible!");
+    }
 
-    rules
+    order_finder
+        .established
         .iter()
         .enumerate()
-        .filter(|(_, rule)| rule.field.starts_with("departure"))
-        .map(|(idx, _)| {
-            let rule_row = rule_rows.iter().position(|val| *val == idx).unwrap();
-            mine.values[rule_row] as usize
-        })
+        .filter(|(_, rule)| rule.unwrap().field.starts_with("departure"))
+        .map(|(idx, _)| mine.values[idx] as usize)
         .product()
 }
 
@@ -77,38 +76,7 @@ fn get_valid_tickets(rules: &[Rule], tickets: &[Ticket]) -> Vec<Ticket> {
         .collect()
 }
 
-fn find_order(rule_rows: &mut Vec<usize>, rule_checker: &mut RuleChecker) -> bool {
-    let row = rule_rows.len();
-    let rule_count = rule_checker.rules.len();
-    if row >= rule_count {
-        return true;
-    }
-
-    for rule_idx in 0..rule_count {
-        // Check if already contained
-        if rule_rows.contains(&rule_idx) {
-            continue;
-        }
-
-        // Check if rule valid
-        let valid = rule_checker.check_rule_row(rule_idx, row);
-        if !valid {
-            continue;
-        }
-
-        // Check if other rules can be assigned somewhere
-        rule_rows.push(rule_idx);
-        let valid = find_order(rule_rows, rule_checker);
-        if valid {
-            return true;
-        }
-        rule_rows.pop();
-    }
-
-    false
-}
-
-#[derive(Clone, Debug, Display, FromStr)]
+#[derive(Clone, Debug, Display, FromStr, Eq, PartialEq)]
 #[display("{field}: {min1}-{max1} or {min2}-{max2}")]
 struct Rule {
     field: String,
@@ -150,47 +118,89 @@ impl Ticket {
     }
 }
 
-#[derive(Debug)]
-struct RuleChecker<'a, 'b> {
-    rules: &'a [Rule],
-    tickets: &'b [Ticket],
-    row_size: usize,
-    rule_row_cache: Vec<Option<bool>>,
+#[derive(Debug, Clone)]
+struct RuleOrderFinder<'a> {
+    order: Vec<Vec<&'a Rule>>,          // map of col -> possible rules
+    established: Vec<Option<&'a Rule>>, // map of col -> established rule
 }
 
-impl<'a, 'b> RuleChecker<'a, 'b> {
-    fn new(rules: &'a [Rule], tickets: &'b [Ticket]) -> RuleChecker<'a, 'b> {
-        let row_size = tickets[0].values.len();
-        RuleChecker {
-            rules,
-            tickets,
-            row_size,
-            rule_row_cache: vec![None; rules.len() * row_size],
+impl<'a, 'b> RuleOrderFinder<'a> {
+    fn new(rules: &'a [Rule], tickets: &[Ticket]) -> RuleOrderFinder<'a> {
+        let order = RuleOrderFinder::find_initial(rules, tickets);
+        RuleOrderFinder {
+            order,
+            established: vec![None; rules.len()],
         }
     }
 
-    fn check_rule_row(&mut self, rule_idx: usize, row: usize) -> bool {
-        assert!(rule_idx < self.rules.len());
-        assert!(row < self.row_size);
+    fn find_initial<'x>(rules: &'x [Rule], tickets: &[Ticket]) -> Vec<Vec<&'x Rule>> {
+        let rule_len = rules.len();
+        let mut valid_rules: Vec<Vec<&Rule>> = Vec::new();
+        valid_rules.reserve(rule_len);
 
-        // Check cache
-        let cache_idx = rule_idx * self.row_size + row;
-        let cached = self.rule_row_cache[cache_idx];
-        if cached.is_some() {
-            return cached.unwrap();
+        for col_idx in 0..rule_len {
+            let valid_rules_col = rules
+                .iter()
+                .filter(|rule| {
+                    tickets
+                        .iter()
+                        .all(|ticket| rule.value_valid(ticket.values[col_idx]))
+                })
+                .collect();
+            valid_rules.push(valid_rules_col);
         }
 
-        // Calculate value
-        let rule = &self.rules[rule_idx];
-        let valid = self
-            .tickets
-            .iter()
-            .all(|ticket| rule.value_valid(ticket.values[row]));
+        valid_rules
+    }
 
-        // Store result into cache
-        self.rule_row_cache[cache_idx] = Some(valid);
+    #[allow(dead_code)]
+    fn print(&self) {
+        println!("Current rules:");
+        for (idx, valid_rule) in self.established.iter().enumerate() {
+            if valid_rule.is_some() {
+                println!("{} has established rule {:?}", idx, valid_rule.unwrap());
+            }
+        }
+        for (idx, valid_rule) in self.order.iter().enumerate() {
+            println!("{} has {} valid rules", idx, valid_rule.len());
+        }
+    }
 
-        valid
+    fn optimize(&mut self) {
+        let mut indicies: Vec<usize> = self
+            .established
+            .iter_mut()
+            .enumerate()
+            .filter(|(_, value)| value.is_none())
+            .map(|(idx, _)| idx)
+            .collect();
+
+        let mut changed = 1;
+        while changed > 0 {
+            let mut remove: Vec<usize> = Vec::new();
+            for &idx in &indicies {
+                if self.order[idx].len() == 1 {
+                    let rule = self.order[idx][0];
+                    self.established[idx] = Some(rule);
+
+                    for &order_idx in &indicies {
+                        let col_order = &mut self.order[order_idx];
+                        let rule_idx = col_order.iter().position(|col_rule| *col_rule == rule);
+                        if let Some(x) = rule_idx {
+                            col_order.remove(x);
+                        }
+                    }
+
+                    remove.push(idx);
+                }
+            }
+            indicies.retain(|x| !remove.contains(&x));
+            changed = remove.len();
+        }
+    }
+
+    fn order_established(&self) -> bool {
+        self.established.iter().all(|rule| rule.is_some())
     }
 }
 
@@ -223,23 +233,5 @@ mod tests {
             values: vec![7, 3, 47],
         }];
         assert_eq!(get_valid_tickets(&rules, &nearby), valid);
-    }
-
-    #[test]
-    fn rule_checker_works() {
-        let (rules, mine, nearby) = parse_input(SIMPLE_INPUT);
-        let tickets = vec![mine, nearby[0].clone()];
-        let mut rule_checker = RuleChecker::new(&rules, &tickets);
-
-        assert_eq!(rule_checker.check_rule_row(0, 0), true);
-        assert_eq!(rule_checker.check_rule_row(0, 1), true);
-        assert_eq!(rule_checker.check_rule_row(0, 2), false);
-        assert_eq!(rule_checker.check_rule_row(1, 0), true);
-        assert_eq!(rule_checker.check_rule_row(1, 1), false);
-        assert_eq!(rule_checker.check_rule_row(1, 2), false);
-        assert_eq!(rule_checker.check_rule_row(2, 0), false);
-        assert_eq!(rule_checker.check_rule_row(2, 1), false);
-        assert_eq!(rule_checker.check_rule_row(2, 2), true);
-        assert_eq!(rule_checker.check_rule_row(0, 0), true);
     }
 }
