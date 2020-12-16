@@ -73,6 +73,13 @@ name = "day-15-rust"
 version = "0.1.0"
 
 [[package]]
+name = "day-16-rust"
+version = "0.1.0"
+dependencies = [
+ "parse-display",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
