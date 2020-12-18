@@ -21,7 +21,7 @@ My solutions for Advent of Code 2020. Language choice not yet final :)
 | 15  | ✔️   | ✔️  |     |        |        |
 | 16  | ✔️   |     |     |        |        |
 | 17  | ✔️   |     |     |        |        |
-| 18  |      |     |     |        |        |
+| 18  | ✔️   |     |     |        |        |
 | 19  |      |     |     |        |        |
 | 20  |      |     |     |        |        |
 | 21  |      |     |     |        |        |
