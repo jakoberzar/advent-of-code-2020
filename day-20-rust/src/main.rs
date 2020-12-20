@@ -11,7 +11,12 @@ fn main() {
     let mut tiles = parse_input(INPUT);
 
     // Star 1
-    star1(&mut tiles);
+    let product = star1(&mut tiles);
+    println!("Product of squares is {}", product);
+
+    // Star 2
+    let roughness = star2(&mut tiles);
+    println!("Roughness of water among the monsters is {}", roughness);
 }
 
 fn parse_input(input: &str) -> Vec<Tile> {
@@ -33,9 +38,8 @@ fn star2(tiles: &mut [Tile]) -> usize {
     matcher.find_matches();
     let mut picture = matcher.construct_picture();
     picture.rotate_and_flip_until_monster_found();
-    println!("{}", picture);
     picture.mark_monsters();
-    println!("{}", picture);
+    println!("Exclusive picture of monsters! {}", picture);
     picture.count_roughness()
 }
 
@@ -78,7 +82,6 @@ impl Into<u8> for Side {
             Side::Right => 1,
             Side::Bottom => 2,
             Side::Left => 3,
-            _ => panic!("Invalid index!"),
         }
     }
 }
@@ -145,19 +148,15 @@ impl Tile {
     fn find_match(&self, other: &Tile) -> Option<TileMatch> {
         let id1 = self.id;
         let id2 = other.id;
-        for (idx1, border) in self.borders.iter().enumerate() {
-            let found = other.borders.iter().position(|other| other == border);
-            if let Some(idx2) = found {
-                return Some(TileMatch::new(id1, id2, idx1));
-            }
-
-            // Now try with borders flipped
-            let found = other
-                .borders_flipped
+        for (side1_idx, border) in self.borders.iter().enumerate() {
+            // Check if any of the borders or flipped borders matches
+            let matches = other
+                .borders
                 .iter()
-                .position(|other| other == border);
-            if let Some(idx2) = found {
-                return Some(TileMatch::new(id1, id2, idx1));
+                .chain(other.borders_flipped.iter())
+                .any(|other| other == border);
+            if matches {
+                return Some(TileMatch::new(id1, id2, side1_idx));
             }
         }
         None
@@ -224,11 +223,11 @@ struct TileMatch {
 }
 
 impl TileMatch {
-    fn new(id1: u32, id2: u32, idx1: usize) -> TileMatch {
+    fn new(id1: u32, id2: u32, side1_idx: usize) -> TileMatch {
         TileMatch {
             id1,
             id2,
-            border1: Side::from(idx1 as u8),
+            border1: Side::from(side1_idx as u8),
         }
     }
 }
@@ -268,8 +267,6 @@ impl<'a> TileMatcher<'a> {
                 }
             }
         }
-
-        // println!("{:?}", self.tile_match);
     }
 
     fn get_tiles_per_matches(&self) -> Vec<Vec<usize>> {
@@ -418,7 +415,7 @@ impl<'a> TileMatcher<'a> {
             }
         }
 
-        self.print_grid(&grid, side_len);
+        // self.print_grid(&grid, side_len);
 
         let final_grid: Vec<usize> = grid.iter().map(|idx| idx.unwrap()).collect();
 
@@ -491,6 +488,7 @@ impl<'a> TileMatcher<'a> {
         }
     }
 
+    #[allow(dead_code)]
     fn print_grid(&self, grid: &[Option<usize>], side_len: usize) {
         let tile_len = self.tiles[0].line_len;
         // ! Only works for one row atm!!!
@@ -555,7 +553,7 @@ impl Picture {
         Picture { grid, line_len }
     }
 
-    fn monster_exists(&self) -> bool {
+    fn find_monster(&self) -> Option<(usize, usize)> {
         let monster: Vec<char> = MONSTER.chars().filter(|c| *c != '\n').collect();
         let mon_width = MONSTER.lines().next().unwrap().len();
         let mon_height = MONSTER.lines().count();
@@ -578,49 +576,25 @@ impl Picture {
                     }
                 }
                 if matches {
-                    println!("Monster found");
-                    return true;
+                    return Some((row, col));
                 }
             }
         }
-        false
+        None
     }
 
     fn mark_monsters(&mut self) {
         let monster: Vec<char> = MONSTER.chars().filter(|c| *c != '\n').collect();
         let mon_width = MONSTER.lines().next().unwrap().len();
         let mon_height = MONSTER.lines().count();
-        for row in 0..self.line_len - mon_height + 1 {
-            for col in 0..self.line_len - mon_width + 1 {
-                let mut matches = true;
-                for mon_row in 0..mon_height {
-                    for mon_col in 0..mon_width {
-                        let mon_idx = mon_row * mon_width + mon_col;
-                        if monster[mon_idx] == '#' {
-                            let pic_idx = (row + mon_row) * self.line_len + col + mon_col;
-                            if self.grid[pic_idx] != '#' {
-                                matches = false;
-                                break;
-                            }
-                        }
-                    }
-                    if !matches {
-                        break;
-                    }
-                }
-                if matches {
-                    // Mark the monster!
-                    for mon_row in 0..mon_height {
-                        for mon_col in 0..mon_width {
-                            let mon_idx = mon_row * mon_width + mon_col;
-                            if monster[mon_idx] == '#' {
-                                let pic_idx = (row + mon_row) * self.line_len + col + mon_col;
-                                self.grid[pic_idx] = 'O';
-                            }
-                        }
-                        if !matches {
-                            break;
-                        }
+        while let Some((row, col)) = self.find_monster() {
+            // Mark the monster!
+            for mon_row in 0..mon_height {
+                for mon_col in 0..mon_width {
+                    let mon_idx = mon_row * mon_width + mon_col;
+                    if monster[mon_idx] == '#' {
+                        let pic_idx = (row + mon_row) * self.line_len + col + mon_col;
+                        self.grid[pic_idx] = 'O';
                     }
                 }
             }
@@ -632,22 +606,23 @@ impl Picture {
     }
 
     fn rotate_and_flip_until_monster_found(&mut self) {
-        for idx in 0..5 {
-            if self.monster_exists() {
+        for _ in 0..5 {
+            // Try normal
+            if self.find_monster().is_some() {
                 return;
             }
-            println!("idx:{}\n{}", idx, self);
+
+            // Try flipped
+            self.flip_horizontally();
+            if self.find_monster().is_some() {
+                return;
+            }
+            self.flip_horizontally();
+
+            // Rotate it for next iteration
             self.rotate_right();
-            if self.monster_exists() {
-                return;
-            }
-            self.flip_horizontally();
-            println!("idx:{}, flipped\n{}", idx, self);
-            if self.monster_exists() {
-                return;
-            }
-            self.flip_horizontally();
         }
+        panic!("No monster found!");
     }
 
     fn rotate_right(&mut self) {
@@ -670,18 +645,6 @@ impl Picture {
             let new_row = new_idx / self.line_len;
             let old_row = (self.line_len - 1) - new_row;
             let value = self.grid[old_row * self.line_len + col];
-            new_grid.push(value);
-        }
-        self.grid = new_grid;
-    }
-
-    fn flip_vertically(&mut self) {
-        let mut new_grid: Vec<char> = Vec::with_capacity(self.grid.len());
-        for new_idx in 0..self.grid.len() {
-            let row = new_idx / self.line_len;
-            let new_col = new_idx % self.line_len;
-            let old_col = (self.line_len - 1) - new_col;
-            let value = self.grid[row * self.line_len + old_col];
             new_grid.push(value);
         }
         self.grid = new_grid;
