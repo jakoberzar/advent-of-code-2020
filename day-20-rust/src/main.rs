@@ -7,25 +7,25 @@ const INPUT: &str = include_str!("./../../inputs/day-20.txt");
 const SIMPLE_INPUT: &str = include_str!("./../../inputs/simple/day-20.txt");
 
 fn main() {
-    let tiles = parse_input(SIMPLE_INPUT);
+    let mut tiles = parse_input(SIMPLE_INPUT);
 
     // Star 1
-    star1(&tiles);
+    star1(&mut tiles);
 }
 
 fn parse_input(input: &str) -> Vec<Tile> {
     input.trim().split("\n\n").map(Tile::new).collect()
 }
 
-fn star1(tiles: &[Tile]) -> u64 {
+fn star1(tiles: &mut [Tile]) -> u64 {
     let mut matcher = TileMatcher::new(tiles);
     matcher.find_matches();
     let tiles_per_matches = matcher.get_tiles_per_matches();
 
     println!("{:?}", tiles_per_matches);
 
-    println!("Construct attempt");
-    matcher.construct_picture();
+    // println!("Construct attempt");
+    // matcher.construct_picture();
 
     tiles_per_matches[2]
         .iter()
@@ -104,32 +104,39 @@ impl Tile {
             .parse()
             .unwrap();
 
-        let top_border = lines.clone().next().unwrap().trim().chars().collect();
-        let bottom_border = lines.clone().last().unwrap().trim().chars().collect();
-        let left_border = lines
-            .clone()
-            .map(|line| line.trim().chars().next().unwrap())
-            .collect();
-        let right_border = lines
-            .clone()
-            .map(|line| line.trim().chars().last().unwrap())
-            .collect();
-        let borders: [Vec<char>; 4] = [top_border, right_border, bottom_border, left_border];
-        let len = borders[0].len();
-
-        let mut borders_flipped: [Vec<char>; 4] = borders.clone();
-        for border in borders_flipped.iter_mut() {
-            border.reverse();
-        }
-
+        let borders: [Vec<char>; 4] = [vec![], vec![], vec![], vec![]];
+        let borders_flipped: [Vec<char>; 4] = [vec![], vec![], vec![], vec![]];
+        let len = lines.clone().next().unwrap().trim().len();
         let grid = lines.flat_map(|line| line.trim().chars()).collect();
 
-        Tile {
+        let mut tile = Tile {
             id,
             grid,
             borders,
             borders_flipped,
             len,
+        };
+
+        tile.update_borders();
+        tile
+    }
+
+    fn update_borders(&mut self) {
+        let top_border = self.grid[0..self.len].to_owned();
+        let bottom_border = self.grid[self.grid.len() - self.len..self.grid.len()].to_owned();
+        let left_border: Vec<char> = self.grid.iter().step_by(self.len).copied().collect();
+        let right_border = self
+            .grid
+            .iter()
+            .skip(self.len - 1)
+            .step_by(self.len)
+            .copied()
+            .collect();
+        self.borders = [top_border, right_border, bottom_border, left_border];
+
+        self.borders_flipped = self.borders.clone();
+        for border in self.borders_flipped.iter_mut() {
+            border.reverse();
         }
     }
 
@@ -165,7 +172,7 @@ impl Tile {
             new_grid.push(value);
         }
         self.grid = new_grid;
-        // TODO: Update borders and flipped borders
+        self.update_borders();
     }
 
     fn flip_horizontally(&mut self) {
@@ -178,7 +185,7 @@ impl Tile {
             new_grid.push(value);
         }
         self.grid = new_grid;
-        // TODO: Update borders and flipped borders
+        self.update_borders();
     }
 
     fn flip_vertically(&mut self) {
@@ -191,7 +198,7 @@ impl Tile {
             new_grid.push(value);
         }
         self.grid = new_grid;
-        // TODO: Update borders and flipped borders
+        self.update_borders();
     }
 }
 
@@ -613,14 +620,14 @@ mod tests {
 
     #[test]
     fn simple_star1() {
-        let tiles = parse_input(SIMPLE_INPUT);
-        assert_eq!(star1(&tiles), 1951 * 3079 * 2971 * 1171);
+        let mut tiles = parse_input(SIMPLE_INPUT);
+        assert_eq!(star1(&mut tiles), 1951 * 3079 * 2971 * 1171);
     }
 
     #[test]
     fn full_star1() {
-        let tiles = parse_input(INPUT);
-        assert_eq!(star1(&tiles), 108603771107737);
+        let mut tiles = parse_input(INPUT);
+        assert_eq!(star1(&mut tiles), 108603771107737);
     }
 
     #[test]
