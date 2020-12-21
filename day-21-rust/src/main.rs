@@ -18,7 +18,7 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Vec<Product> {
-    input.trim().lines().map(Product::new).collect()
+    input.trim().lines().map(Product::from).collect()
 }
 
 fn star1(products: &[Product]) -> usize {
@@ -46,7 +46,14 @@ struct Product<'a> {
 }
 
 impl<'a> Product<'a> {
-    fn new(input: &'a str) -> Self {
+    fn new(ingredients: Vec<&'a str>, allergens: Vec<&'a str>) -> Self {
+        Product {
+            ingredients,
+            allergens,
+        }
+    }
+
+    fn from(input: &'a str) -> Self {
         let mut parts = input.trim().split("(contains");
         let ingredients = parts.next().unwrap().trim().split(' ').collect();
         let allergens = parts
@@ -65,85 +72,51 @@ impl<'a> Product<'a> {
     }
 }
 
+type StrToProductMap<'a> = HashMap<&'a str, Vec<&'a Product<'a>>>;
 struct IngredientMatcher<'a> {
     products: &'a [Product<'a>],
+    ingredient_map: StrToProductMap<'a>,
+    allergen_map: StrToProductMap<'a>,
 }
 
 impl<'a> IngredientMatcher<'a> {
     fn new(products: &'a [Product]) -> IngredientMatcher<'a> {
-        IngredientMatcher { products }
+        let (ingredient_map, allergen_map): (StrToProductMap, StrToProductMap) =
+            Self::get_ingredients_and_allergens_maps(products);
+        IngredientMatcher {
+            products,
+            ingredient_map,
+            allergen_map,
+        }
     }
 
-    fn get_ingredient_list(&self) -> Vec<&str> {
-        let mut all_ingredients: Vec<&str> = self
-            .products
-            .iter()
-            .flat_map(|product| product.ingredients.clone())
-            .collect();
-        all_ingredients.sort();
-        all_ingredients.dedup();
-        all_ingredients
-    }
-
-    fn get_allergen_list(&self) -> Vec<&str> {
-        let mut all_allergens: Vec<&str> = self
-            .products
-            .iter()
-            .flat_map(|product| product.allergens.clone())
-            .collect();
-        all_allergens.sort();
-        all_allergens.dedup();
-        all_allergens
-    }
-
-    fn get_ingredient_product_map(&self) -> HashMap<&str, Vec<&Product>> {
-        self.get_ingredient_list()
-            .iter()
-            .map(|ingredient| {
-                let contained_products = self
-                    .products
-                    .iter()
-                    .filter(|product| product.ingredients.contains(ingredient))
-                    .collect();
-                (*ingredient, contained_products)
-            })
-            .collect()
-    }
-
-    fn get_allergen_product_map(&self) -> HashMap<&str, Vec<&Product>> {
-        self.get_allergen_list()
-            .iter()
-            .map(|allergen| {
-                let contained_products = self
-                    .products
-                    .iter()
-                    .filter(|product| product.allergens.contains(allergen))
-                    .collect();
-                (*allergen, contained_products)
-            })
-            .collect()
+    fn get_ingredients_and_allergens_maps(
+        products: &'a [Product],
+    ) -> (StrToProductMap<'a>, StrToProductMap<'a>) {
+        let mut ingredient_map: HashMap<&str, Vec<&Product>> = HashMap::new();
+        let mut allergen_map: HashMap<&str, Vec<&Product>> = HashMap::new();
+        for product in products.iter() {
+            for ingredient in product.ingredients.iter() {
+                ingredient_map.entry(ingredient).or_default().push(product);
+            }
+            for allergen in product.allergens.iter() {
+                allergen_map.entry(allergen).or_default().push(product);
+            }
+        }
+        (ingredient_map, allergen_map)
     }
 
     fn find_empty_ingredients(&self) -> Vec<&str> {
-        let ingredient_map = self.get_ingredient_product_map();
-        let allergen_map = self.get_allergen_product_map();
-        let ingredients_without_allergen = ingredient_map
+        let ingredients_without_allergen = self
+            .ingredient_map
             .iter()
             .filter(|&(ingredient, ingr_products)| {
-                let initial_allergens: HashSet<&str> = ingr_products
-                    .iter()
-                    .flat_map(|product| product.allergens.clone())
-                    .collect();
-                // Filter initial allergens to check which are possible
-                let possible_allergens = initial_allergens.iter().filter(|allergen| {
-                    // This ingredient needs to be in all of these allergens products in order to pass
-                    let allergen_products = allergen_map.get(*allergen).unwrap();
-                    allergen_products
-                        .iter()
-                        .all(|product| product.ingredients.contains(ingredient))
-                });
-                let count = possible_allergens.count();
-                count == 0
+                let possible_allergens = Self::find_possible_ingredient_allergens(
+                    ingredient,
+                    ingr_products,
+                    &self.allergen_map,
+                );
+                possible_allergens.len() == 0
             })
             .map(|(k, _)| *k)
             .collect();
@@ -152,15 +125,10 @@ impl<'a> IngredientMatcher<'a> {
 
     fn count_empty_ingredients_appearances(&self) -> usize {
         let empty_ingredients = self.find_empty_ingredients();
-        self.products
+        // Count the amount of products every empty ingredients appeared in
+        empty_ingredients
             .iter()
-            .map(|product| {
-                product
-                    .ingredients
-                    .iter()
-                    .filter(|ingredient| empty_ingredients.contains(ingredient))
-                    .count()
-            })
+            .map(|ingredient| self.ingredient_map.get(ingredient).unwrap().len())
             .sum()
     }
 
@@ -176,17 +144,43 @@ impl<'a> IngredientMatcher<'a> {
                     .filter(|ingredient| !empty_ingredients.contains(ingredient))
                     .copied()
                     .collect();
-                Product {
-                    allergens,
-                    ingredients,
-                }
+                Product::new(ingredients, allergens)
             })
             .collect()
     }
 
+    fn find_possible_ingredient_allergens(
+        ingredient: &&str,
+        ingredient_products: &Vec<&'a Product>,
+        allergen_map: &StrToProductMap,
+    ) -> Vec<&'a str> {
+        // Get all allergens that appeared in the ingredient's products
+        let initial_allergens: HashSet<&str> = ingredient_products
+            .iter()
+            .flat_map(|product| product.allergens.clone())
+            .collect();
+
+        // Filter initial allergens to check which are possible
+        initial_allergens
+            .iter()
+            .filter(|allergen| {
+                allergen_map
+                    .get(*allergen)
+                    // In case allergen is not in the map, it has already found the pairing ingredient
+                    .map_or(false, |allergen_products| {
+                        // This ingredient needs to be in all of these allergens products in order to pass
+                        allergen_products
+                            .iter()
+                            .all(|product| product.ingredients.contains(&ingredient))
+                    })
+            })
+            .copied()
+            .collect()
+    }
+
     fn get_ingredient_allergen_list(&self) -> Vec<(&str, &str)> {
-        let mut ingredient_map = self.get_ingredient_product_map();
-        let mut allergen_map = self.get_allergen_product_map();
+        let mut ingredient_map = self.ingredient_map.clone();
+        let mut allergen_map = self.allergen_map.clone();
         assert!(ingredient_map.len() == allergen_map.len());
 
         let mut pairs: Vec<(&str, &str)> = Vec::with_capacity(ingredient_map.len());
@@ -194,26 +188,12 @@ impl<'a> IngredientMatcher<'a> {
         while allergen_map.len() > 0 {
             let mut new_pairs: Vec<(&str, &str)> = ingredient_map
                 .iter()
-                .map(|(ingredient, ingr_products)| {
-                    let initial_allergens: HashSet<&str> = ingr_products
-                        .iter()
-                        .flat_map(|product| product.allergens.clone())
-                        .collect();
-                    // Filter initial allergens to check which are possible
-                    let possible_allergens: Vec<&str> = initial_allergens
-                        .iter()
-                        .filter(|allergen| {
-                            // This ingredient needs to be in all of these allergens products in order to pass
-                            allergen_map
-                                .get(*allergen)
-                                .map_or(false, |allergen_products| {
-                                    allergen_products
-                                        .iter()
-                                        .all(|product| product.ingredients.contains(ingredient))
-                                })
-                        })
-                        .copied()
-                        .collect();
+                .map(|(ingredient, products)| {
+                    let possible_allergens = Self::find_possible_ingredient_allergens(
+                        ingredient,
+                        products,
+                        &allergen_map,
+                    );
                     (ingredient, possible_allergens)
                 })
                 .filter(|(_, possible_allergens)| possible_allergens.len() == 1)
