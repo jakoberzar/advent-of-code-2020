@@ -1,3 +1,4 @@
+use std::hash::Hash;
 use std::{
     collections::{HashSet, VecDeque},
     iter::FromIterator,
@@ -7,6 +8,11 @@ use std::{
 const INPUT: &str = include_str!("./../../inputs/day-22.txt");
 #[allow(dead_code)]
 const SIMPLE_INPUT: &str = include_str!("./../../inputs/simple/day-22.txt");
+
+const MAX_CARD_VALUE: usize = 50;
+const CARD_PER_U64: usize = 11; // log_51(2^64) = 11
+const REQUIRED_U64_BYTES: usize = 5; // MAX_CARD_VALUE / CARD_PER_U64
+const VALUE_MULTIPLIER: u64 = (MAX_CARD_VALUE as u64) + 1;
 
 fn main() {
     let players = parse_input(INPUT);
@@ -25,6 +31,11 @@ fn parse_input(input: &str) -> (VecDeque<u8>, VecDeque<u8>) {
     let mut players = input.trim().split("\n\n");
     let player1 = parse_player(players.next().unwrap());
     let player2 = parse_player(players.next().unwrap());
+
+    // Check max
+    let actual_max_value = player1.iter().chain(player2.iter()).max().unwrap();
+    assert!(*actual_max_value as usize <= MAX_CARD_VALUE);
+
     (player1, player2)
 }
 
@@ -94,10 +105,59 @@ impl Player {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct DeckState {
+    card_sums: [u64; REQUIRED_U64_BYTES], // Assertion checked in parse_input()
+}
+
+impl DeckState {
+    fn new(deck1: &VecDeque<u8>, deck2: &VecDeque<u8>) -> Self {
+        let mut card_sums = [0; REQUIRED_U64_BYTES];
+
+        // Insert deck1
+        let mut idx = 0;
+        for element in deck1.iter() {
+            let arr_idx = idx / CARD_PER_U64;
+            card_sums[arr_idx] = (card_sums[arr_idx] * VALUE_MULTIPLIER) + (*element as u64);
+            idx += 1;
+        }
+
+        // Add separator
+        card_sums[idx / CARD_PER_U64] *= VALUE_MULTIPLIER;
+        idx += 1;
+
+        // Insert deck2
+        for element in deck2.iter() {
+            let arr_idx = idx / CARD_PER_U64;
+            card_sums[arr_idx] = (card_sums[arr_idx] * VALUE_MULTIPLIER) + (*element as u64);
+            idx += 1;
+        }
+
+        // More elegant, but slower solution:
+        // let separator = Some(&0u8);
+        // let iterator = deck1
+        //     .iter()
+        //     .chain(separator.into_iter())
+        //     .chain(deck2.iter());
+        // for (idx, element) in iterator.enumerate() {
+        //     let arr_idx = idx / CARD_PER_U64;
+        //     card_sums[arr_idx] = (card_sums[arr_idx] * VALUE_MULTIPLIER) + (*element as u64);
+        // }
+        DeckState { card_sums }
+    }
+}
+
+impl Hash for DeckState {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let hash = self.card_sums[0] ^ self.card_sums[2];
+        state.write_u64(hash);
+    }
+}
+
 struct RecursiveCombat {
     deck1: VecDeque<u8>,
     deck2: VecDeque<u8>,
-    round_cache: HashSet<(VecDeque<u8>, VecDeque<u8>)>,
+    round_cache: HashSet<DeckState>,
 }
 
 impl RecursiveCombat {
@@ -112,7 +172,7 @@ impl RecursiveCombat {
     fn check_cache_and_insert(&mut self) -> bool {
         !self
             .round_cache
-            .insert((self.deck1.clone(), self.deck2.clone()))
+            .insert(DeckState::new(&self.deck1, &self.deck2))
     }
 
     // Play the game and return the winner
