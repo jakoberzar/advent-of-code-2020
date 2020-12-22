@@ -1,4 +1,7 @@
-use std::{collections::VecDeque, iter::FromIterator};
+use std::{
+    collections::{HashSet, VecDeque},
+    iter::FromIterator,
+};
 
 #[allow(dead_code)]
 const INPUT: &str = include_str!("./../../inputs/day-22.txt");
@@ -94,7 +97,7 @@ impl Player {
 struct RecursiveCombat {
     deck1: VecDeque<u8>,
     deck2: VecDeque<u8>,
-    round_cache: Vec<(VecDeque<u8>, VecDeque<u8>)>,
+    round_cache: HashSet<(VecDeque<u8>, VecDeque<u8>)>,
 }
 
 impl RecursiveCombat {
@@ -102,17 +105,16 @@ impl RecursiveCombat {
         RecursiveCombat {
             deck1,
             deck2,
-            round_cache: Vec::new(),
+            round_cache: HashSet::new(),
         }
     }
 
     fn save_to_cache(&mut self) {
         self.round_cache
-            .push((self.deck1.clone(), self.deck2.clone()));
+            .insert((self.deck1.clone(), self.deck2.clone()));
     }
 
     fn check_cache(&self) -> bool {
-        // TODO: Optimize cache checks
         self.round_cache
             .contains(&(self.deck1.clone(), self.deck2.clone()))
     }
