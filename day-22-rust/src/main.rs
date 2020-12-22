@@ -109,23 +109,18 @@ impl RecursiveCombat {
         }
     }
 
-    fn save_to_cache(&mut self) {
-        self.round_cache
-            .insert((self.deck1.clone(), self.deck2.clone()));
-    }
-
-    fn check_cache(&self) -> bool {
-        self.round_cache
-            .contains(&(self.deck1.clone(), self.deck2.clone()))
+    fn check_cache_and_insert(&mut self) -> bool {
+        !self
+            .round_cache
+            .insert((self.deck1.clone(), self.deck2.clone()))
     }
 
     // Play the game and return the winner
     fn play(&mut self) -> Player {
         while !self.one_deck_empty() {
-            if self.check_cache() {
+            if self.check_cache_and_insert() {
                 return Player::Player1;
             }
-            self.save_to_cache();
 
             let draw1 = self.deck1.pop_front().unwrap();
             let draw2 = self.deck2.pop_front().unwrap();
