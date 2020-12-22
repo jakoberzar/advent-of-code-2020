@@ -34,9 +34,6 @@ fn parse_player(input: &str) -> VecDeque<u8> {
         .collect()
 }
 
-// TODO: Remove try_into().unwrap()
-// TODO: Use Self
-
 fn star1(player1: &VecDeque<u8>, player2: &VecDeque<u8>) -> usize {
     let mut player1 = player1.clone();
     let mut player2 = player2.clone();
@@ -115,27 +112,18 @@ impl RecursiveCombat {
     }
 
     fn check_cache(&self) -> bool {
-        // TODO: Could probably be optimized by getting rid of .clone() somehow
+        // TODO: Optimize cache checks
         self.round_cache
             .contains(&(self.deck1.clone(), self.deck2.clone()))
     }
 
     // Play the game and return the winner
     fn play(&mut self) -> Player {
-        // println!(
-        //     "New Game! Decks:\nPlayer1: {:?}\nPlayer2: {:?}",
-        //     self.deck1, self.deck2
-        // );
         while !self.one_deck_empty() {
             if self.check_cache() {
-                // println!("Winner via cache!");
                 return Player::Player1;
             }
             self.save_to_cache();
-            // println!(
-            //     "New round! Decks:\nPlayer1: {:?}\nPlayer2: {:?}",
-            //     self.deck1, self.deck2
-            // );
 
             let draw1 = self.deck1.pop_front().unwrap();
             let draw2 = self.deck2.pop_front().unwrap();
@@ -148,14 +136,9 @@ impl RecursiveCombat {
                     VecDeque::from_iter(self.deck1.iter().take(draw1 as usize).copied());
                 let copied_deck2: VecDeque<u8> =
                     VecDeque::from_iter(self.deck2.iter().take(draw2 as usize).copied());
-                // println!(
-                //     "-- New game! Decks:\nPlayer1: {:?}\nPlayer2: {:?}",
-                //     copied_deck1, copied_deck2
-                // );
                 let mut recursive_round = RecursiveCombat::new(copied_deck1, copied_deck2);
 
                 let winner = recursive_round.play();
-                // println!("-- End of game");
                 winner
             } else {
                 // Play with normal rules
@@ -170,7 +153,6 @@ impl RecursiveCombat {
             winning_deck.push_back(Self::players_card(winner.opponent(), draw1, draw2));
         }
 
-        // println!("Winner via deck size!");
         self.get_deck_winner()
     }
 
