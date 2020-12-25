@@ -2,33 +2,33 @@
 
 My solutions for Advent of Code 2020. Language choice not yet final :)
 
-| Day | Rust | F#  | Zig | Kotlin | Python |
-| --- | ---- | --- | --- | ------ | ------ |
-| 1   | ✔️   |     |     |        |        |
-| 2   | ✔️   |     |     |        |        |
-| 3   | ✔️   |     |     |        |        |
-| 4   | ✔️   |     |     |        |        |
-| 5   | ✔️   | ✔️  |     |        |        |
-| 6   | ✔️   |     |     |        |        |
-| 7   | ✔️   |     |     |        |        |
-| 8   | ✔️   |     |     |        |        |
-| 9   | ✔️   |     |     |        |        |
-| 10  | ✔️   |     |     |        |        |
-| 11  | ✔️   |     |     |        |        |
-| 12  | ✔️   |     |     |        |        |
-| 13  | ✔️   |     |     |        |        |
-| 14  | ✔️   |     |     |        |        |
-| 15  | ✔️   | ✔️  |     |        |        |
-| 16  | ✔️   |     |     |        |        |
-| 17  | ✔️   |     |     |        |        |
-| 18  | ✔️   |     |     |        |        |
-| 19  | ✔️   |     |     |        |        |
-| 20  | ✔️   |     |     |        |        |
-| 21  | ✔️   |     |     |        |        |
-| 22  | ✔️   |     |     |        |        |
-| 23  | ✔️   |     |     |        |        |
-| 24  | ✔️   |     |     |        |        |
-| 25  | ✔️   |     |     |        |        |
+| Day | Rust | F#  | Kotlin | Python |
+| --- | ---- | --- | ------ | ------ |
+| 1   | ✔️   |     |        |        |
+| 2   | ✔️   |     |        |        |
+| 3   | ✔️   |     |        |        |
+| 4   | ✔️   |     |        |        |
+| 5   | ✔️   | ✔️  |        |        |
+| 6   | ✔️   |     |        |        |
+| 7   | ✔️   |     |        |        |
+| 8   | ✔️   |     |        |        |
+| 9   | ✔️   |     |        |        |
+| 10  | ✔️   |     |        |        |
+| 11  | ✔️   |     |        |        |
+| 12  | ✔️   |     |        |        |
+| 13  | ✔️   |     |        |        |
+| 14  | ✔️   |     |        |        |
+| 15  | ✔️   | ✔️  |        |        |
+| 16  | ✔️   |     |        |        |
+| 17  | ✔️   |     |        |        |
+| 18  | ✔️   |     |        |        |
+| 19  | ✔️   |     |        |        |
+| 20  | ✔️   |     |        |        |
+| 21  | ✔️   |     |        |        |
+| 22  | ✔️   |     |        |        |
+| 23  | ✔️   |     |        |        |
+| 24  | ✔️   |     |        |        |
+| 25  | ✔️   |     |        |        |
 
 ## Rust
 
@@ -68,10 +68,11 @@ dotnet new console --language F#
 # Also, don't forget about declaring namespace and module in the file!
 ```
 
-## Other possible languages
+## Other language candidates
 
-- Ruby or Crystal too see what they look like?
+- Ruby or Crystal too see what Ruby feels like?
+- Zig or Go to learn another systems language?
 - Compile-time C++?
 - PHP to test out the PHP 8 JIT?
-- SIC/XE assembly for some quality time spent writing code?
+- SIC/XE assembly for some quality time spent writing assembly?
 - PREV? Lox? Own language?
