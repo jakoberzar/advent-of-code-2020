@@ -28,7 +28,7 @@ My solutions for Advent of Code 2020. Language choice not yet final :)
 | 22  | ✔️   |     |        |        |
 | 23  | ✔️   |     |        |        |
 | 24  | ✔️   |     |        |        |
-| 25  | ✔️   |     |        |        |
+| 25  | ✔️   | ✔️  |        |        |
 
 ## Rust
 
