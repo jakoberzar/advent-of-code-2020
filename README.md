@@ -1,6 +1,6 @@
 # Advent of Code 2020
 
-My solutions for Advent of Code 2020. Language choice not yet final :)
+My solutions for Advent of Code 2020. I like to use Advent of Code to get some practice on languages which I haven't used a lot of. This year, I was satisfied with using Rust, so I didn't really try write in other languages as much as I planned. I might write additional solutions in other languages sometime later.
 
 | Day | Rust | F#  | Kotlin | Python |
 | --- | ---- | --- | ------ | ------ |
